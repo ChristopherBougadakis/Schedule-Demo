@@ -620,7 +620,6 @@ function BookingScheduler() {
             clearPendingAction();
             setPassengerModalVisible(false);
           }}
-          width={550}
           footer={[
             <Button key="close" onClick={() => {
               clearPendingAction();
