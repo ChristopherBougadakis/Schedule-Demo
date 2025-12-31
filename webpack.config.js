@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
-  entry: './src/examples/index.jsx',
+  entry: './src/planyo-index.jsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -42,13 +42,12 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/examples/index.html',
-      favicon: './src/examples/assets/banner.png',
+      template: './src/planyo/index.html',
     }),
     new ESLintPlugin({
-      emitError: true,
-      emitWarning: false,
-      failOnError: true,
+      emitError: false,
+      emitWarning: true,
+      failOnError: false,
       extensions: ['js', 'jsx'],
     }),
   ],

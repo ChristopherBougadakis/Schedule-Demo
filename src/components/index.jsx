@@ -2,7 +2,6 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CellUnit, DATETIME_FORMAT, DATE_FORMAT, SummaryPos, ViewType } from '../config/default';
-import DemoData from '../sample-data/sample1';
 import AddMorePopover from './AddMorePopover';
 import AgendaView from './AgendaView';
 import BodyView from './BodyView';
@@ -15,6 +14,8 @@ import SchedulerData from './SchedulerData';
 import SchedulerHeader from './SchedulerHeader';
 import wrapperFun from './WrapperFun';
 import HeaderView from './HeaderView';
+
+const DemoData = { resources: [], events: [] }; // Empty demo data placeholder
 
 function Scheduler(props) {
   const {

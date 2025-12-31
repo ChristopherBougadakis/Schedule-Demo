@@ -166,6 +166,50 @@ const createDummyEvents = () => {
       bgColor: '#FF9999',
       boatType: 'small',
     },
+    // Testing multiple bookings same boat same day
+    {
+      id: 10,
+      title: 'Morning Rental - 2hrs',
+      start: new Date(2026, 0, 1, 12, 0),
+      end: new Date(2026, 0, 1, 14, 0),
+      resourceId: 'small-1',
+      bgColor: '#9B59B6',
+      boatType: 'small',
+    },
+    {
+      id: 11,
+      title: 'Afternoon Rental - 2hrs',
+      start: new Date(2026, 0, 1, 15, 0),
+      end: new Date(2026, 0, 1, 17, 0),
+      resourceId: 'small-1',
+      bgColor: '#3498DB',
+      boatType: 'small',
+    },
+    {
+      id: 12,
+      title: 'Evening Cruise - 2hrs',
+      start: new Date(2026, 0, 1, 18, 0),
+      end: new Date(2026, 0, 1, 20, 0),
+      resourceId: 'small-1',
+      bgColor: '#E74C3C',
+      boatType: 'small',
+    },
+    // Multiple bookings on big boat same day
+    {
+      id: 13,
+      title: 'Afternoon Tour - 4 ppl',
+      start: new Date(2026, 0, 1, 14, 0),
+      end: new Date(2026, 0, 1, 17, 0),
+      resourceId: 'big-1',
+      bgColor: '#F39C12',
+      boatType: 'big',
+      passengers: [
+        { id: 'p1', name: 'Alex Brown', checkedIn: false, phone: '+1 (555) 700-1000', email: 'alex@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 60.00 },
+        { id: 'p2', name: 'Beth Green', checkedIn: false, phone: '+1 (555) 700-2000', email: 'beth@example.com', addOns: [], specialRequest: 'None', price: 55.00 },
+        { id: 'p3', name: 'Charlie White', checkedIn: false, phone: '+1 (555) 700-3000', email: 'charlie@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 65.00 },
+        { id: 'p4', name: 'Diana Black', checkedIn: false, phone: '+1 (555) 700-4000', email: 'diana@example.com', addOns: [], specialRequest: 'None', price: 55.00 },
+      ]
+    },
   ];
 };
 
