@@ -257,9 +257,14 @@ function BookingScheduler() {
   if (!schedulerDataRef.current) {
     const dummyEvents = createDummyEvents();
     const boatResources = createBoatResources();
+    
+    // Set default view to Day on mobile, Week on desktop
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const defaultViewType = isMobile ? ViewType.Day : ViewType.Week;
+    
     const schedulerData = new SchedulerData(
       '2026-01-01',
-      ViewType.Week,
+      defaultViewType,
       false,
       false,
       {

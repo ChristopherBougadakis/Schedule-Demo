@@ -32,6 +32,32 @@
   color: #ccc;
 }
 
+/* Calendar popover sizing for desktop */
+.popover-calendar {
+  max-width: 320px;
+  max-height: 400px;
+  overflow: auto;
+}
+
+.popover-calendar .ant-picker-calendar {
+  max-width: 100%;
+}
+
+.popover-calendar .ant-picker-panel {
+  max-width: 100%;
+}
+
+.popover-calendar .ant-picker-calendar-header {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ant-popover-inner {
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
+}
+
 /* Mobile Modal Styling */
 .mobile-modal .ant-modal-content {
   padding: 12px !important;
@@ -60,8 +86,99 @@
   overflow-y: auto;
 }
 
+/* Fullscreen mobile modal */
+@media (max-width: 768px) {
+  /* Target all ant-design modals on mobile */
+  .ant-modal-root .mobile-modal,
+  .mobile-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    z-index: 1000 !important;
+  }
+
+  .ant-modal-root .mobile-modal .ant-modal-wrap,
+  .mobile-modal .ant-modal-wrap {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+
+  .ant-modal-root .mobile-modal .ant-modal,
+  .mobile-modal .ant-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  .ant-modal-root .mobile-modal .ant-modal-content,
+  .mobile-modal .ant-modal-content {
+    position: fixed !important;
+    inset: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-height: 100vh !important;
+  }
+
+  .ant-modal-root .mobile-modal .ant-modal-header,
+  .mobile-modal .ant-modal-header {
+    flex-shrink: 0 !important;
+    padding: 12px !important;
+  }
+
+  .ant-modal-root .mobile-modal .ant-modal-body,
+  .mobile-modal .ant-modal-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    max-height: none !important;
+    padding: 12px !important;
+  }
+
+  .ant-modal-root .mobile-modal .ant-modal-footer,
+  .mobile-modal .ant-modal-footer {
+    flex-shrink: 0 !important;
+    border-top: 1px solid #f0f0f0 !important;
+    padding: 12px !important;
+  }
+}
+
 /* Mobile Responsive - Landscape only & Bigger */
 @media (max-width: 768px) {
+  /* Hide Week and Month view buttons on mobile - only show Day */
+  .header2-text .ant-radio-group .ant-radio-button-wrapper:nth-child(2),
+  .header2-text .ant-radio-group .ant-radio-button-wrapper:nth-child(3),
+  .ant-radio-group .ant-radio-button-wrapper:nth-child(2),
+  .ant-radio-group .ant-radio-button-wrapper:nth-child(3),
+  input[value="001"] + .ant-radio-button-inner,
+  input[value="001"],
+  input[value="002"] + .ant-radio-button-inner,
+  input[value="002"],
+  .ant-radio-button:has(input[value="001"]),
+  .ant-radio-button:has(input[value="002"]) {
+    display: none !important;
+  }
+  
+  .ant-radio-group .ant-radio-button-wrapper {
+    display: none !important;
+  }
+  
+  .ant-radio-group .ant-radio-button-wrapper:first-child {
+    display: inline-block !important;
+  }
+  
   /* Increase font sizes for mobile */
   .react-big-schedule .header1-text {
     font-size: 32px;
