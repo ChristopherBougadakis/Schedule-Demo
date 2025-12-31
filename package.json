@@ -53,7 +53,9 @@
   },
   "scripts": {
     "dev": "webpack serve --open",
+    "dev:planyo": "PLANYO_MODE=true webpack serve --open --config webpack.config.planyo.js",
     "build": "webpack --mode production",
+    "build:planyo": "PLANYO_MODE=true webpack --mode production --config webpack.config.planyo.js",
     "build:lib": "node scripts/build.js",
     "clean": "npx rimraf dist",
     "lint": "eslint ./src",
