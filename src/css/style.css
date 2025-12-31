@@ -32,6 +32,94 @@
   color: #ccc;
 }
 
+/* Mobile Modal Styling */
+.mobile-modal .ant-modal-content {
+  padding: 12px !important;
+}
+
+.mobile-modal .ant-modal-header {
+  padding: 8px 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.mobile-modal .ant-modal-footer {
+  padding: 8px 12px !important;
+  margin-top: 8px !important;
+}
+
+.mobile-modal .ant-descriptions-item-content {
+  font-size: 14px;
+}
+
+.mobile-modal .ant-descriptions-item {
+  padding: 6px 12px !important;
+}
+
+.mobile-modal .ant-modal-body {
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* Mobile Responsive - Landscape only & Bigger */
+@media (max-width: 768px) {
+  /* Increase font sizes for mobile */
+  .react-big-schedule .header1-text {
+    font-size: 32px;
+  }
+  
+  .react-big-schedule .header2-text,
+  .react-big-schedule .header3-text {
+    font-size: 18px;
+  }
+  
+  .react-big-schedule .base-text,
+  .react-big-schedule .help-text {
+    font-size: 16px;
+  }
+  
+  .react-big-schedule .event-item {
+    font-size: 16px;
+    padding: 8px;
+    min-height: 48px;
+  }
+  
+  .react-big-schedule .resource-cell {
+    min-height: 80px;
+    font-size: 16px;
+  }
+  
+  .react-big-schedule .scheduler-cell {
+    min-height: 80px;
+  }
+  
+  .react-big-schedule td, .react-big-schedule th {
+    padding: 8px;
+  }
+  
+  .ant-modal {
+    max-width: 95vw !important;
+  }
+  
+  .ant-btn {
+    font-size: 16px;
+    padding: 8px 16px;
+    min-height: 44px;
+  }
+}
+
+/* Landscape orientation enforcement */
+@media (orientation: portrait) and (max-width: 768px) {
+  body, html {
+    transform: rotate(90deg);
+    transform-origin: left top;
+    width: 100vh;
+    overflow-x: hidden;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+}
+
 /* Scheduler Components */
 .react-big-schedule {
   margin: 20px auto;

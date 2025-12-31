@@ -443,7 +443,7 @@ function BookingScheduler() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div style={{ height: '100vh' }}>
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <Scheduler
           schedulerData={schedulerDataRef.current}
           prevClick={prevClick}
@@ -462,7 +462,8 @@ function BookingScheduler() {
               clearPendingAction();
               setModalVisible(false);
             }}
-            width={700}
+            width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '90%' : 700}
+            wrapClassName="mobile-modal"
             footer={[
               <Button key="close" onClick={() => {
                 clearPendingAction();
@@ -534,7 +535,8 @@ function BookingScheduler() {
               clearPendingAction();
               setModalVisible(false);
             }}
-            width={600}
+            width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '90%' : 600}
+            wrapClassName="mobile-modal"
             footer={[
               <Button key="close" onClick={() => {
                 clearPendingAction();
@@ -598,18 +600,6 @@ function BookingScheduler() {
                 </div>
 
                 <Divider />
-
-                <div style={{ marginTop: '20px' }}>
-                  <h4>Quick Actions</h4>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <Button type="primary" icon={<CheckCircleOutlined />} onClick={handleCheckIn}>
-                      Check In Now
-                    </Button>
-                    <Button onClick={() => message.info('Sending reminder email...')}>
-                      Send Reminder
-                    </Button>
-                  </div>
-                </div>
               </>
             )}
           </Modal>
@@ -619,6 +609,8 @@ function BookingScheduler() {
         <Modal
           title={`Passenger: ${selectedPassenger?.name}`}
           visible={passengerModalVisible}
+          width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '90%' : 500}
+          wrapClassName="mobile-modal"
           onCancel={() => {
             clearPendingAction();
             setPassengerModalVisible(false);
