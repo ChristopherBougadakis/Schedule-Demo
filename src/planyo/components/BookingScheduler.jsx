@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Scheduler, SchedulerData, ViewType, DemoData } from '../../components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Modal, Button, Descriptions, Tag, Divider, message, InputNumber } from 'antd';
+import { Modal, Button, Descriptions, Tag, Divider, message, InputNumber, DatePicker, TimePicker, Form } from 'antd';
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../css/style.css';
@@ -243,6 +243,20 @@ function BookingScheduler() {
   const [passengerNumPeopleCopy, setPassengerNumPeopleCopy] = useState(null);
   const [hasUnsavedPassengerChanges, setHasUnsavedPassengerChanges] = useState(false);
   
+  // Move reservation states
+  const [moveModalVisible, setMoveModalVisible] = useState(false);
+  const [moveNewDate, setMoveNewDate] = useState(null);
+  const [moveStartTime, setMoveStartTime] = useState(null);
+  const [moveEndTime, setMoveEndTime] = useState(null);
+  const [moveMode, setMoveMode] = useState('new'); // 'new' or 'existing'
+  const [moveToEventId, setMoveToEventId] = useState(null);
+  
+  // Move small boat reservation states
+  const [moveSmallBoatModalVisible, setMoveSmallBoatModalVisible] = useState(false);
+  const [moveSmallBoatDate, setMoveSmallBoatDate] = useState(null);
+  const [moveSmallBoatStartTime, setMoveSmallBoatStartTime] = useState(null);
+  const [moveSmallBoatEndTime, setMoveSmallBoatEndTime] = useState(null);
+  
   const forceUpdate = () => setUpdate(prev => prev + 1);
   
   // Helper function to update event title based on total people
@@ -256,11 +270,173 @@ function BookingScheduler() {
       schedulerDataRef.current.setEvents(events);
     }
   };
+
+  // Helper function to check for time overlaps
+  const hasTimeOverlap = (start1, end1, start2, end2) => {
+    return start1 < end2 && end1 > start2;
+  };
+
+  // Helper function to check if new time overlaps with existing reservations on same boat
+  const checkBoatTimeOverlap = (date, startTime, endTime, resourceId, excludeEventId = null) => {
+    const events = schedulerDataRef.current.events;
+    const newStart = new Date(date.toDate());
+    newStart.setHours(startTime.hour(), startTime.minute());
+    
+    const newEnd = new Date(date.toDate());
+    newEnd.setHours(endTime.hour(), endTime.minute());
+
+    return events.some(e => {
+      if (e.resourceId !== resourceId) return false; // Different boat
+      if (excludeEventId && e.id === excludeEventId) return false; // Exclude original booking
+      return hasTimeOverlap(newStart, newEnd, e.start, e.end);
+    });
+  };
   
   // Clear pending action after timeout
   const clearPendingAction = () => {
     if (confirmTimeout) clearTimeout(confirmTimeout);
     setPendingAction(null);
+  };
+  
+  // Handle move reservation for individual passenger
+  const handleMoveReservation = () => {
+    if (!selectedPassenger || !selectedBooking) {
+      message.error('No passenger or booking selected');
+      return;
+    }
+
+    const events = schedulerDataRef.current.events;
+    const originalEventIndex = events.findIndex(e => e.id === selectedBooking.id);
+
+    if (moveMode === 'existing') {
+      // Add to existing reservation
+      if (!moveToEventId) {
+        message.error('Please select a reservation to move to');
+        return;
+      }
+
+      const targetEventIndex = events.findIndex(e => e.id === moveToEventId);
+      if (targetEventIndex === -1) {
+        message.error('Target reservation not found');
+        return;
+      }
+
+      // Add passenger to target event
+      if (!events[targetEventIndex].passengers) {
+        events[targetEventIndex].passengers = [];
+      }
+      events[targetEventIndex].passengers.push({ ...selectedPassenger });
+
+      // Update target event title
+      const targetTotalPeople = events[targetEventIndex].passengers.reduce((sum, p) => sum + (p.numPeople || 1), 0);
+      const targetTitlePrefix = events[targetEventIndex].title.split(' - ')[0];
+      events[targetEventIndex].title = `${targetTitlePrefix} - ${targetTotalPeople} ppl`;
+
+      message.success(`✓ ${selectedPassenger.name} added to existing reservation`);
+    } else {
+      // Create new reservation
+      if (!moveNewDate || !moveStartTime || !moveEndTime) {
+        message.error('Please select date and times for new reservation');
+        return;
+      }
+
+      const newStartDate = moveNewDate.toDate();
+      newStartDate.setHours(moveStartTime.hour(), moveStartTime.minute());
+      
+      const newEndDate = moveNewDate.toDate();
+      newEndDate.setHours(moveEndTime.hour(), moveEndTime.minute());
+
+      const newEventId = Math.max(...events.map(e => e.id), 0) + 1;
+      
+      const passengerName = selectedPassenger.name.split(' ')[0];
+      const numPeople = selectedPassenger.numPeople || 1;
+      const newTitle = `${passengerName} - ${numPeople} ppl`;
+
+      const newEvent = {
+        id: newEventId,
+        title: newTitle,
+        start: newStartDate,
+        end: newEndDate,
+        resourceId: selectedBooking.resourceId,
+        bgColor: selectedBooking.bgColor,
+        boatType: selectedBooking.boatType,
+        checkedIn: selectedPassenger.checkedIn,
+        passengers: [{ ...selectedPassenger }],
+      };
+
+      events.push(newEvent);
+      message.success(`✓ ${selectedPassenger.name} moved to ${moveNewDate.format('MMM D, YYYY')} from ${moveStartTime.format('h:mm A')} to ${moveEndTime.format('h:mm A')}`);
+    }
+
+    // Remove passenger from original booking
+    if (originalEventIndex !== -1 && events[originalEventIndex].passengers) {
+      events[originalEventIndex].passengers = events[originalEventIndex].passengers.filter(p => p.id !== selectedPassenger.id);
+      
+      // Update original event title
+      if (events[originalEventIndex].passengers.length > 0) {
+        const totalPeople = events[originalEventIndex].passengers.reduce((sum, p) => sum + (p.numPeople || 1), 0);
+        const titlePrefix = events[originalEventIndex].title.split(' - ')[0];
+        events[originalEventIndex].title = `${titlePrefix} - ${totalPeople} ppl`;
+      } else {
+        // If no passengers left, remove the event
+        events.splice(originalEventIndex, 1);
+      }
+    }
+
+    schedulerDataRef.current.setEvents(events);
+    forceUpdate();
+    
+    setMoveModalVisible(false);
+    setPassengerModalVisible(false);
+    setModalVisible(false);
+    setMoveNewDate(null);
+    setMoveStartTime(null);
+    setMoveEndTime(null);
+    setMoveToEventId(null);
+    setMoveMode('new');
+  };
+
+  // Handle moving small boat reservations
+  const handleMoveSmallBoat = () => {
+    if (!selectedBooking) {
+      message.error('No booking selected');
+      return;
+    }
+
+    if (!moveSmallBoatDate || !moveSmallBoatStartTime || !moveSmallBoatEndTime) {
+      message.error('Please select date and times');
+      return;
+    }
+
+    const events = schedulerDataRef.current.events;
+    const originalEventIndex = events.findIndex(e => e.id === selectedBooking.id);
+
+    // Check for overlaps
+    if (checkBoatTimeOverlap(moveSmallBoatDate, moveSmallBoatStartTime, moveSmallBoatEndTime, selectedBooking.resourceId, selectedBooking.id)) {
+      message.error('⚠️ Time slot conflicts with another reservation on this boat');
+      return;
+    }
+
+    // Update booking with new times
+    const newStartDate = moveSmallBoatDate.toDate();
+    newStartDate.setHours(moveSmallBoatStartTime.hour(), moveSmallBoatStartTime.minute());
+    
+    const newEndDate = moveSmallBoatDate.toDate();
+    newEndDate.setHours(moveSmallBoatEndTime.hour(), moveSmallBoatEndTime.minute());
+
+    events[originalEventIndex].start = newStartDate;
+    events[originalEventIndex].end = newEndDate;
+
+    message.success(`✓ Reservation moved to ${moveSmallBoatDate.format('MMM D, YYYY')} from ${moveSmallBoatStartTime.format('h:mm A')} to ${moveSmallBoatEndTime.format('h:mm A')}`);
+
+    schedulerDataRef.current.setEvents(events);
+    forceUpdate();
+    
+    setMoveSmallBoatModalVisible(false);
+    setModalVisible(false);
+    setMoveSmallBoatDate(null);
+    setMoveSmallBoatStartTime(null);
+    setMoveSmallBoatEndTime(null);
   };
   
   // Helper function to update event status
@@ -629,6 +805,13 @@ function BookingScheduler() {
                 Close
               </Button>,
               <Button 
+                key="move"
+                type="default"
+                onClick={() => setMoveSmallBoatModalVisible(true)}
+              >
+                Move Reservation
+              </Button>,
+              <Button 
                 key="refund" 
                 type={pendingAction === 'refund' ? 'primary' : 'dashed'} 
                 danger 
@@ -774,6 +957,18 @@ function BookingScheduler() {
                 Save Changes
               </Button>
             ),
+            <Button 
+              key="move"
+              type="dashed"
+              onClick={() => {
+                setMoveNewDate(dayjs(selectedPassenger.reservationDate || selectedBooking.start));
+                setMoveStartTime(dayjs(selectedPassenger.reservationDate || selectedBooking.start));
+                setMoveEndTime(dayjs(selectedPassenger.reservationDate || selectedBooking.end));
+                setMoveModalVisible(true);
+              }}
+            >
+              Move Passenger
+            </Button>,
             selectedPassenger && (
               <Button key="checkin" type="primary" onClick={handleCheckInPassenger}>
                 {selectedPassenger.checkedIn ? 'Undo Check-In' : 'Check In'}
@@ -952,6 +1147,215 @@ function BookingScheduler() {
               </div>
             </>
           )}
+        </Modal>
+
+        {/* Move Passenger Modal */}
+        <Modal
+          title={`Move Passenger: ${selectedPassenger?.name}`}
+          visible={moveModalVisible}
+          width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 500}
+          wrapClassName="mobile-modal"
+          onCancel={() => {
+            setMoveModalVisible(false);
+            setMoveNewDate(null);
+            setMoveStartTime(null);
+            setMoveEndTime(null);
+            setMoveToEventId(null);
+            setMoveMode('new');
+          }}
+          footer={[
+            <Button key="cancel" onClick={() => {
+              setMoveModalVisible(false);
+              setMoveNewDate(null);
+              setMoveStartTime(null);
+              setMoveEndTime(null);
+              setMoveToEventId(null);
+              setMoveMode('new');
+            }}>
+              Cancel
+            </Button>,
+            <Button 
+              key="move" 
+              type="primary" 
+              onClick={handleMoveReservation}
+              disabled={
+                moveMode === 'new' 
+                  ? !moveNewDate || !moveStartTime || !moveEndTime
+                  : !moveToEventId
+              }
+            >
+              Move Reservation
+            </Button>,
+          ]}
+        >
+          <Form layout="vertical" style={{ marginTop: '16px' }}>
+            <Form.Item label="Move To" required>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Button 
+                  type={moveMode === 'new' ? 'primary' : 'default'}
+                  onClick={() => {
+                    setMoveMode('new');
+                    setMoveToEventId(null);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  Create New
+                </Button>
+                <Button 
+                  type={moveMode === 'existing' ? 'primary' : 'default'}
+                  onClick={() => setMoveMode('existing')}
+                  style={{ flex: 1 }}
+                >
+                  Existing Reservation
+                </Button>
+              </div>
+            </Form.Item>
+
+            {moveMode === 'existing' && (
+              <Form.Item label="Select Reservation" required>
+                <select
+                  value={moveToEventId || ''}
+                  onChange={(e) => setMoveToEventId(parseInt(e.target.value))}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d9d9d9' }}
+                >
+                  <option value="">-- Select a reservation --</option>
+                  {schedulerDataRef.current.events
+                    .filter(e => e.id !== selectedBooking.id && e.passengers && e.passengers.length > 0)
+                    .map(e => (
+                      <option key={e.id} value={e.id}>
+                        {e.title} ({dayjs(e.start).format('MMM D, h:mm A')} - {dayjs(e.end).format('h:mm A')})
+                      </option>
+                    ))}
+                </select>
+              </Form.Item>
+            )}
+
+            {moveMode === 'new' && (
+              <>
+                <Form.Item label="New Date" required>
+                  <DatePicker
+                    value={moveNewDate}
+                    onChange={(date) => setMoveNewDate(date)}
+                    style={{ width: '100%' }}
+                    disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Start Time" required>
+                  <TimePicker
+                    value={moveStartTime}
+                    onChange={(time) => setMoveStartTime(time)}
+                    format="h:mm A"
+                    use12Hours
+                    showNow={false}
+                    needConfirm={false}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+
+                <Form.Item label="End Time" required>
+                  <TimePicker
+                    value={moveEndTime}
+                    onChange={(time) => setMoveEndTime(time)}
+                    format="h:mm A"
+                    use12Hours
+                    showNow={false}
+                    needConfirm={false}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+
+                {moveNewDate && moveStartTime && moveEndTime && (
+                  <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f0f5ff', borderRadius: '4px' }}>
+                    <strong>Moving to:</strong>
+                    <p style={{ margin: '8px 0 0 0' }}>
+                      {moveNewDate.format('dddd, MMM D, YYYY')}
+                      <br />
+                      {moveStartTime.format('h:mm A')} - {moveEndTime.format('h:mm A')}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </Form>
+        </Modal>
+
+        {/* Move Small Boat Reservation Modal */}
+        <Modal
+          title={`Move Reservation: ${selectedBooking?.title}`}
+          visible={moveSmallBoatModalVisible}
+          width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 500}
+          wrapClassName="mobile-modal"
+          onCancel={() => {
+            setMoveSmallBoatModalVisible(false);
+            setMoveSmallBoatDate(null);
+            setMoveSmallBoatStartTime(null);
+            setMoveSmallBoatEndTime(null);
+          }}
+          footer={[
+            <Button key="cancel" onClick={() => {
+              setMoveSmallBoatModalVisible(false);
+              setMoveSmallBoatDate(null);
+              setMoveSmallBoatStartTime(null);
+              setMoveSmallBoatEndTime(null);
+            }}>
+              Cancel
+            </Button>,
+            <Button 
+              key="move" 
+              type="primary" 
+              onClick={handleMoveSmallBoat}
+              disabled={!moveSmallBoatDate || !moveSmallBoatStartTime || !moveSmallBoatEndTime}
+            >
+              Move Reservation
+            </Button>,
+          ]}
+        >
+          <Form layout="vertical" style={{ marginTop: '16px' }}>
+            <Form.Item label="New Date" required>
+              <DatePicker
+                value={moveSmallBoatDate}
+                onChange={(date) => setMoveSmallBoatDate(date)}
+                style={{ width: '100%' }}
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
+              />
+            </Form.Item>
+
+            <Form.Item label="Start Time" required>
+              <TimePicker
+                value={moveSmallBoatStartTime}
+                onChange={(time) => setMoveSmallBoatStartTime(time)}
+                format="h:mm A"
+                use12Hours
+                showNow={false}
+                needConfirm={false}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+
+            <Form.Item label="End Time" required>
+              <TimePicker
+                value={moveSmallBoatEndTime}
+                onChange={(time) => setMoveSmallBoatEndTime(time)}
+                format="h:mm A"
+                use12Hours
+                showNow={false}
+                needConfirm={false}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+
+            {moveSmallBoatDate && moveSmallBoatStartTime && moveSmallBoatEndTime && (
+              <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f0f5ff', borderRadius: '4px' }}>
+                <strong>Moving to:</strong>
+                <p style={{ margin: '8px 0 0 0' }}>
+                  {moveSmallBoatDate.format('dddd, MMM D, YYYY')}
+                  <br />
+                  {moveSmallBoatStartTime.format('h:mm A')} - {moveSmallBoatEndTime.format('h:mm A')}
+                </p>
+              </div>
+            )}
+          </Form>
         </Modal>
 
       </div>
