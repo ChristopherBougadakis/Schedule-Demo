@@ -1,4 +1,5 @@
 /* eslint-disable consistent-return */
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { CellUnit, DATETIME_FORMAT, DATE_FORMAT, SummaryPos, ViewType } from '../config/default';
@@ -51,6 +52,9 @@ function Scheduler(props) {
     documentHeight: 0,
     headerHeight: 0,
   });
+
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
 
   // Refs instead of class properties
   const currentAreaRef = useRef(-1);
@@ -298,7 +302,39 @@ function Scheduler(props) {
 
     scrollLeftRef.current = schedulerContentRef.current.scrollLeft;
     scrollTopRef.current = schedulerContentRef.current.scrollTop;
+
+    // Update arrow visibility
+    updateArrowVisibility();
   }, [props, schedulerData]);
+
+  // Update arrow visibility based on scroll position
+  const updateArrowVisibility = useCallback(() => {
+    if (schedulerContentRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = schedulerContentRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(Math.round(scrollLeft) < scrollWidth - clientWidth - 1);
+    }
+  }, []);
+
+  // Scroll navigation handlers
+  const scrollLeft = useCallback(() => {
+    if (schedulerContentRef.current) {
+      const scrollAmount = schedulerData.getContentCellWidth() * 3;
+      schedulerContentRef.current.scrollLeft -= scrollAmount;
+    }
+  }, [schedulerData]);
+
+  const scrollRight = useCallback(() => {
+    if (schedulerContentRef.current) {
+      const scrollAmount = schedulerData.getContentCellWidth() * 3;
+      schedulerContentRef.current.scrollLeft += scrollAmount;
+    }
+  }, [schedulerData]);
+
+  // Update arrows on mount and content changes
+  useEffect(() => {
+    updateArrowVisibility();
+  }, [state.documentWidth, updateArrowVisibility]);
 
   // Event handlers
   const handleViewChange = useCallback(e => {
@@ -415,7 +451,73 @@ function Scheduler(props) {
           </div>
         </td>
         <td>
-          <div className="scheduler-view" style={{ width: schedulerContainerWidth, verticalAlign: 'top' }}>
+          <div className="scheduler-view" style={{ width: schedulerContainerWidth, verticalAlign: 'top', position: 'relative' }}>
+            {showLeftArrow && (
+              <div
+                className="scheduler-nav-arrow scheduler-nav-arrow-left"
+                onClick={scrollLeft}
+                style={{
+                  position: 'absolute',
+                  left: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 1000,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                }}
+              >
+                <LeftOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+              </div>
+            )}
+            {showRightArrow && (
+              <div
+                className="scheduler-nav-arrow scheduler-nav-arrow-right"
+                onClick={scrollRight}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 1000,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  transition: 'all 0.3s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                }}
+              >
+                <RightOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+              </div>
+            )}
             <div style={{ overflow: 'hidden', borderBottom: '1px solid #e9e9e9', height: config.tableHeaderHeight }}>
               <div
                 style={{ overflowX: 'scroll', overflowY: 'hidden', margin: `0px 0px -${contentScrollbarHeight}px` }}

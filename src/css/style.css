@@ -267,6 +267,24 @@
   padding: 0;
 }
 
+/* Scheduler Navigation Arrows */
+.scheduler-nav-arrow {
+  user-select: none;
+}
+
+.scheduler-nav-arrow:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.scheduler-nav-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Smooth scrolling for scheduler content */
+.react-big-schedule .scheduler-view > div > div {
+  scroll-behavior: smooth;
+}
+
 /* Positioning */
 .react-big-schedule .scheduler-content {
   position: relative;
