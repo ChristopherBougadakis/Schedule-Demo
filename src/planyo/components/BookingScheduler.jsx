@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Scheduler, SchedulerData, ViewType, DemoData } from '../../components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Modal, Button, Descriptions, Tag, Divider, message } from 'antd';
+import { Modal, Button, Descriptions, Tag, Divider, message, InputNumber } from 'antd';
 import { CheckCircleOutlined, ClockCircleOutlined, UserOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import '../../css/style.css';
@@ -60,14 +60,14 @@ const createDummyEvents = () => {
       bgColor: '#4ECDC4',
       boatType: 'big',
       passengers: [
-        { id: 'p1', name: 'Alice Johnson', checkedIn: true, phone: '+1 (555) 111-2222', email: 'alice@example.com', addOns: ['Life Jacket', 'Snacks'], specialRequest: 'Vegetarian meal', price: 45.00 },
-        { id: 'p2', name: 'Bob Wilson', checkedIn: true, phone: '+1 (555) 222-3333', email: 'bob@example.com', addOns: ['Camera Rental'], specialRequest: 'None', price: 50.00 },
-        { id: 'p3', name: 'Carol Davis', checkedIn: false, phone: '+1 (555) 333-4444', email: 'carol@example.com', addOns: [], specialRequest: 'Wheelchair accessible', price: 45.00 },
-        { id: 'p4', name: 'David Miller', checkedIn: true, phone: '+1 (555) 444-5555', email: 'david@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 55.00 },
-        { id: 'p5', name: 'Emma Taylor', checkedIn: false, phone: '+1 (555) 555-6666', email: 'emma@example.com', addOns: ['Life Jacket', 'Drinks Package'], specialRequest: 'Allergy: Shellfish', price: 70.00 },
-        { id: 'p6', name: 'Frank Anderson', checkedIn: true, phone: '+1 (555) 666-7777', email: 'frank@example.com', addOns: [], specialRequest: 'None', price: 45.00 },
-        { id: 'p7', name: 'Grace Lee', checkedIn: true, phone: '+1 (555) 777-8888', email: 'grace@example.com', addOns: ['Snacks', 'Photography'], specialRequest: 'Birthday celebration', price: 65.00 },
-        { id: 'p8', name: 'Henry Brown', checkedIn: false, phone: '+1 (555) 888-9999', email: 'henry@example.com', addOns: ['Camera Rental'], specialRequest: 'None', price: 50.00 },
+        { id: 'p1', name: 'Alice Johnson', checkedIn: true, phone: '+1 (555) 111-2222', email: 'alice@example.com', addOns: ['Life Jacket', 'Snacks'], specialRequest: 'Vegetarian meal', price: 45.00, numPeople: 1 },
+        { id: 'p2', name: 'Bob Wilson', checkedIn: true, phone: '+1 (555) 222-3333', email: 'bob@example.com', addOns: ['Camera Rental'], specialRequest: 'None', price: 50.00, numPeople: 2 },
+        { id: 'p3', name: 'Carol Davis', checkedIn: false, phone: '+1 (555) 333-4444', email: 'carol@example.com', addOns: [], specialRequest: 'Wheelchair accessible', price: 45.00, numPeople: 1 },
+        { id: 'p4', name: 'David Miller', checkedIn: true, phone: '+1 (555) 444-5555', email: 'david@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 55.00, numPeople: 1 },
+        { id: 'p5', name: 'Emma Taylor', checkedIn: false, phone: '+1 (555) 555-6666', email: 'emma@example.com', addOns: ['Life Jacket', 'Drinks Package'], specialRequest: 'Allergy: Shellfish', price: 70.00, numPeople: 1 },
+        { id: 'p6', name: 'Frank Anderson', checkedIn: true, phone: '+1 (555) 666-7777', email: 'frank@example.com', addOns: [], specialRequest: 'None', price: 45.00, numPeople: 1 },
+        { id: 'p7', name: 'Grace Lee', checkedIn: true, phone: '+1 (555) 777-8888', email: 'grace@example.com', addOns: ['Snacks', 'Photography'], specialRequest: 'Birthday celebration', price: 65.00, numPeople: 3 },
+        { id: 'p8', name: 'Henry Brown', checkedIn: false, phone: '+1 (555) 888-9999', email: 'henry@example.com', addOns: ['Camera Rental'], specialRequest: 'None', price: 50.00, numPeople: 1 },
       ]
     },
     {
@@ -89,16 +89,16 @@ const createDummyEvents = () => {
       bgColor: '#95E1D3',
       boatType: 'big',
       passengers: [
-        { id: 'p1', name: 'John Executive', checkedIn: true, phone: '+1 (555) 100-1111', email: 'john@company.com', addOns: ['Drinks Package'], specialRequest: 'VIP seating', price: 75.00 },
-        { id: 'p2', name: 'Sarah Manager', checkedIn: true, phone: '+1 (555) 200-2222', email: 'sarah@company.com', addOns: [], specialRequest: 'None', price: 65.00 },
-        { id: 'p3', name: 'Tom Developer', checkedIn: false, phone: '+1 (555) 300-3333', email: 'tom@company.com', addOns: ['Camera Rental'], specialRequest: 'Professional photography', price: 80.00 },
-        { id: 'p4', name: 'Lisa Designer', checkedIn: true, phone: '+1 (555) 400-4444', email: 'lisa@company.com', addOns: ['Snacks'], specialRequest: 'None', price: 60.00 },
-        { id: 'p5', name: 'Mike Engineer', checkedIn: true, phone: '+1 (555) 500-5555', email: 'mike@company.com', addOns: [], specialRequest: 'None', price: 65.00 },
-        { id: 'p6', name: 'Jenny Analyst', checkedIn: false, phone: '+1 (555) 600-6666', email: 'jenny@company.com', addOns: ['Life Jacket', 'Drinks Package'], specialRequest: 'Gluten-free meal', price: 80.00 },
-        { id: 'p7', name: 'Chris Sales', checkedIn: true, phone: '+1 (555) 700-7777', email: 'chris@company.com', addOns: ['Photography'], specialRequest: 'None', price: 70.00 },
-        { id: 'p8', name: 'Rachel HR', checkedIn: true, phone: '+1 (555) 800-8888', email: 'rachel@company.com', addOns: [], specialRequest: 'None', price: 65.00 },
-        { id: 'p9', name: 'Paul IT', checkedIn: false, phone: '+1 (555) 900-9999', email: 'paul@company.com', addOns: ['Drinks Package', 'Snacks'], specialRequest: 'None', price: 75.00 },
-        { id: 'p10', name: 'Susan Marketing', checkedIn: true, phone: '+1 (555) 910-1010', email: 'susan@company.com', addOns: [], specialRequest: 'Early boarding', price: 65.00 },
+        { id: 'p1', name: 'John Executive', checkedIn: true, phone: '+1 (555) 100-1111', email: 'john@company.com', addOns: ['Drinks Package'], specialRequest: 'VIP seating', price: 75.00, numPeople: 1 },
+        { id: 'p2', name: 'Sarah Manager', checkedIn: true, phone: '+1 (555) 200-2222', email: 'sarah@company.com', addOns: [], specialRequest: 'None', price: 65.00, numPeople: 1 },
+        { id: 'p3', name: 'Tom Developer', checkedIn: false, phone: '+1 (555) 300-3333', email: 'tom@company.com', addOns: ['Camera Rental'], specialRequest: 'Professional photography', price: 80.00, numPeople: 1 },
+        { id: 'p4', name: 'Lisa Designer', checkedIn: true, phone: '+1 (555) 400-4444', email: 'lisa@company.com', addOns: ['Snacks'], specialRequest: 'None', price: 60.00, numPeople: 1 },
+        { id: 'p5', name: 'Mike Engineer', checkedIn: true, phone: '+1 (555) 500-5555', email: 'mike@company.com', addOns: [], specialRequest: 'None', price: 65.00, numPeople: 2 },
+        { id: 'p6', name: 'Jenny Analyst', checkedIn: false, phone: '+1 (555) 600-6666', email: 'jenny@company.com', addOns: ['Life Jacket', 'Drinks Package'], specialRequest: 'Gluten-free meal', price: 80.00, numPeople: 1 },
+        { id: 'p7', name: 'Chris Sales', checkedIn: true, phone: '+1 (555) 700-7777', email: 'chris@company.com', addOns: ['Photography'], specialRequest: 'None', price: 70.00, numPeople: 1 },
+        { id: 'p8', name: 'Rachel HR', checkedIn: true, phone: '+1 (555) 800-8888', email: 'rachel@company.com', addOns: [], specialRequest: 'None', price: 65.00, numPeople: 1 },
+        { id: 'p9', name: 'Paul IT', checkedIn: false, phone: '+1 (555) 900-9999', email: 'paul@company.com', addOns: ['Drinks Package', 'Snacks'], specialRequest: 'None', price: 75.00, numPeople: 1 },
+        { id: 'p10', name: 'Susan Marketing', checkedIn: true, phone: '+1 (555) 910-1010', email: 'susan@company.com', addOns: [], specialRequest: 'Early boarding', price: 65.00, numPeople: 1 },
       ]
     },
     {
@@ -120,12 +120,12 @@ const createDummyEvents = () => {
       bgColor: '#AA96DA',
       boatType: 'big',
       passengers: [
-        { id: 'p1', name: 'John Family', checkedIn: true, phone: '+1 (555) 001-2222', email: 'john.family@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 60.00 },
-        { id: 'p2', name: 'Mary Family', checkedIn: true, phone: '+1 (555) 001-3333', email: 'mary.family@example.com', addOns: [], specialRequest: 'None', price: 55.00 },
-        { id: 'p3', name: 'Tommy Family', checkedIn: true, phone: '+1 (555) 001-4444', email: 'tommy@example.com', addOns: ['Life Jacket', 'Snacks'], specialRequest: 'Children meal', price: 50.00 },
-        { id: 'p4', name: 'Lucy Family', checkedIn: false, phone: '+1 (555) 001-5555', email: 'lucy@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 50.00 },
-        { id: 'p5', name: 'Grandpa', checkedIn: true, phone: '+1 (555) 001-6666', email: 'grandpa@example.com', addOns: ['Wheelchair accessible'], specialRequest: 'Mobility assistance', price: 65.00 },
-        { id: 'p6', name: 'Grandma', checkedIn: true, phone: '+1 (555) 001-7777', email: 'grandma@example.com', addOns: [], specialRequest: 'None', price: 55.00 },
+        { id: 'p1', name: 'John Family', checkedIn: true, phone: '+1 (555) 001-2222', email: 'john.family@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 60.00, numPeople: 1 },
+        { id: 'p2', name: 'Mary Family', checkedIn: true, phone: '+1 (555) 001-3333', email: 'mary.family@example.com', addOns: [], specialRequest: 'None', price: 55.00, numPeople: 1 },
+        { id: 'p3', name: 'Tommy Family', checkedIn: true, phone: '+1 (555) 001-4444', email: 'tommy@example.com', addOns: ['Life Jacket', 'Snacks'], specialRequest: 'Children meal', price: 50.00, numPeople: 1 },
+        { id: 'p4', name: 'Lucy Family', checkedIn: false, phone: '+1 (555) 001-5555', email: 'lucy@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 50.00, numPeople: 1 },
+        { id: 'p5', name: 'Grandpa', checkedIn: true, phone: '+1 (555) 001-6666', email: 'grandpa@example.com', addOns: ['Wheelchair accessible'], specialRequest: 'Mobility assistance', price: 65.00, numPeople: 1 },
+        { id: 'p6', name: 'Grandma', checkedIn: true, phone: '+1 (555) 001-7777', email: 'grandma@example.com', addOns: [], specialRequest: 'None', price: 55.00, numPeople: 1 },
       ]
     },
     {
@@ -147,18 +147,18 @@ const createDummyEvents = () => {
       bgColor: '#A8D8EA',
       boatType: 'big',
       passengers: [
-        { id: 'p1', name: 'Bride', checkedIn: true, phone: '+1 (555) 500-1000', email: 'bride@example.com', addOns: ['Premium Drinks', 'Photography', 'Special Cake'], specialRequest: 'Wedding ceremony', price: 150.00 },
-        { id: 'p2', name: 'Groom', checkedIn: true, phone: '+1 (555) 500-2000', email: 'groom@example.com', addOns: ['Premium Drinks', 'Photography'], specialRequest: 'None', price: 150.00 },
-        { id: 'p3', name: 'Best Man', checkedIn: true, phone: '+1 (555) 500-3000', email: 'bestman@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 80.00 },
-        { id: 'p4', name: 'Maid of Honor', checkedIn: false, phone: '+1 (555) 500-4000', email: 'maidofhonor@example.com', addOns: ['Drinks Package'], specialRequest: 'Vegetarian meal', price: 80.00 },
-        { id: 'p5', name: 'Guest 1', checkedIn: true, phone: '+1 (555) 500-5000', email: 'guest1@example.com', addOns: [], specialRequest: 'None', price: 70.00 },
-        { id: 'p6', name: 'Guest 2', checkedIn: true, phone: '+1 (555) 500-6000', email: 'guest2@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 80.00 },
-        { id: 'p7', name: 'Guest 3', checkedIn: true, phone: '+1 (555) 500-7000', email: 'guest3@example.com', addOns: [], specialRequest: 'None', price: 70.00 },
-        { id: 'p8', name: 'Guest 4', checkedIn: false, phone: '+1 (555) 500-8000', email: 'guest4@example.com', addOns: ['Life Jacket'], specialRequest: 'Non-swimmer', price: 75.00 },
-        { id: 'p9', name: 'Guest 5', checkedIn: true, phone: '+1 (555) 500-9000', email: 'guest5@example.com', addOns: [], specialRequest: 'None', price: 70.00 },
-        { id: 'p10', name: 'Guest 6', checkedIn: true, phone: '+1 (555) 500-1001', email: 'guest6@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 80.00 },
-        { id: 'p11', name: 'Guest 7', checkedIn: false, phone: '+1 (555) 500-1002', email: 'guest7@example.com', addOns: ['Life Jacket'], specialRequest: 'Mobility support', price: 75.00 },
-        { id: 'p12', name: 'Guest 8', checkedIn: true, phone: '+1 (555) 500-1003', email: 'guest8@example.com', addOns: [], specialRequest: 'None', price: 70.00 },
+        { id: 'p1', name: 'Bride', checkedIn: true, phone: '+1 (555) 500-1000', email: 'bride@example.com', addOns: ['Premium Drinks', 'Photography', 'Special Cake'], specialRequest: 'Wedding ceremony', price: 150.00, numPeople: 1 },
+        { id: 'p2', name: 'Groom', checkedIn: true, phone: '+1 (555) 500-2000', email: 'groom@example.com', addOns: ['Premium Drinks', 'Photography'], specialRequest: 'None', price: 150.00, numPeople: 1 },
+        { id: 'p3', name: 'Best Man', checkedIn: true, phone: '+1 (555) 500-3000', email: 'bestman@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 80.00, numPeople: 1 },
+        { id: 'p4', name: 'Maid of Honor', checkedIn: false, phone: '+1 (555) 500-4000', email: 'maidofhonor@example.com', addOns: ['Drinks Package'], specialRequest: 'Vegetarian meal', price: 80.00, numPeople: 1 },
+        { id: 'p5', name: 'Guest 1', checkedIn: true, phone: '+1 (555) 500-5000', email: 'guest1@example.com', addOns: [], specialRequest: 'None', price: 70.00, numPeople: 1 },
+        { id: 'p6', name: 'Guest 2', checkedIn: true, phone: '+1 (555) 500-6000', email: 'guest2@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 80.00, numPeople: 1 },
+        { id: 'p7', name: 'Guest 3', checkedIn: true, phone: '+1 (555) 500-7000', email: 'guest3@example.com', addOns: [], specialRequest: 'None', price: 70.00, numPeople: 1 },
+        { id: 'p8', name: 'Guest 4', checkedIn: false, phone: '+1 (555) 500-8000', email: 'guest4@example.com', addOns: ['Life Jacket'], specialRequest: 'Non-swimmer', price: 75.00, numPeople: 2 },
+        { id: 'p9', name: 'Guest 5', checkedIn: true, phone: '+1 (555) 500-9000', email: 'guest5@example.com', addOns: [], specialRequest: 'None', price: 70.00, numPeople: 1 },
+        { id: 'p10', name: 'Guest 6', checkedIn: true, phone: '+1 (555) 500-1001', email: 'guest6@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 80.00, numPeople: 1 },
+        { id: 'p11', name: 'Guest 7', checkedIn: false, phone: '+1 (555) 500-1002', email: 'guest7@example.com', addOns: ['Life Jacket'], specialRequest: 'Mobility support', price: 75.00, numPeople: 1 },
+        { id: 'p12', name: 'Guest 8', checkedIn: true, phone: '+1 (555) 500-1003', email: 'guest8@example.com', addOns: [], specialRequest: 'None', price: 70.00, numPeople: 1 },
       ]
     },
     {
@@ -212,10 +212,10 @@ const createDummyEvents = () => {
       bgColor: '#F39C12',
       boatType: 'big',
       passengers: [
-        { id: 'p1', name: 'Alex Brown', checkedIn: false, phone: '+1 (555) 700-1000', email: 'alex@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 60.00 },
-        { id: 'p2', name: 'Beth Green', checkedIn: false, phone: '+1 (555) 700-2000', email: 'beth@example.com', addOns: [], specialRequest: 'None', price: 55.00 },
-        { id: 'p3', name: 'Charlie White', checkedIn: false, phone: '+1 (555) 700-3000', email: 'charlie@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 65.00 },
-        { id: 'p4', name: 'Diana Black', checkedIn: false, phone: '+1 (555) 700-4000', email: 'diana@example.com', addOns: [], specialRequest: 'None', price: 55.00 },
+        { id: 'p1', name: 'Alex Brown', checkedIn: false, phone: '+1 (555) 700-1000', email: 'alex@example.com', addOns: ['Life Jacket'], specialRequest: 'None', price: 60.00, numPeople: 1 },
+        { id: 'p2', name: 'Beth Green', checkedIn: false, phone: '+1 (555) 700-2000', email: 'beth@example.com', addOns: [], specialRequest: 'None', price: 55.00, numPeople: 1 },
+        { id: 'p3', name: 'Charlie White', checkedIn: false, phone: '+1 (555) 700-3000', email: 'charlie@example.com', addOns: ['Drinks Package'], specialRequest: 'None', price: 65.00, numPeople: 1 },
+        { id: 'p4', name: 'Diana Black', checkedIn: false, phone: '+1 (555) 700-4000', email: 'diana@example.com', addOns: [], specialRequest: 'None', price: 55.00, numPeople: 1 },
       ]
     },
   ];
@@ -235,7 +235,27 @@ function BookingScheduler() {
   const [pendingAction, setPendingAction] = useState(null); // 'cancel', 'refund', 'remove'
   const [confirmTimeout, setConfirmTimeout] = useState(null);
   
+  // Refund percentage states
+  const [refundPercentage, setRefundPercentage] = useState(100); // Default 100%
+  const [passengerRefundPercentage, setPassengerRefundPercentage] = useState(100); // Default 100%
+  
+  // Track unsaved changes
+  const [passengerNumPeopleCopy, setPassengerNumPeopleCopy] = useState(null);
+  const [hasUnsavedPassengerChanges, setHasUnsavedPassengerChanges] = useState(false);
+  
   const forceUpdate = () => setUpdate(prev => prev + 1);
+  
+  // Helper function to update event title based on total people
+  const updateEventTitle = (eventId, passengers) => {
+    const events = schedulerDataRef.current.events;
+    const eventIndex = events.findIndex(e => e.id === eventId);
+    if (eventIndex !== -1) {
+      const totalPeople = passengers.reduce((sum, p) => sum + (p.numPeople || 1), 0);
+      const titlePrefix = events[eventIndex].title.split(' - ')[0];
+      events[eventIndex].title = `${titlePrefix} - ${totalPeople} ppl`;
+      schedulerDataRef.current.setEvents(events);
+    }
+  };
   
   // Clear pending action after timeout
   const clearPendingAction = () => {
@@ -302,6 +322,8 @@ function BookingScheduler() {
   // Handle passenger click
   const handlePassengerClick = (passenger) => {
     setSelectedPassenger(passenger);
+    setPassengerNumPeopleCopy(passenger.numPeople || 1); // Save original value
+    setHasUnsavedPassengerChanges(false);
     setPassengerModalVisible(true);
     setModalVisible(false); // Close the big boat modal when opening passenger modal
   };
@@ -419,7 +441,8 @@ function BookingScheduler() {
   const handleRefundPassenger = () => {
     if (pendingAction === 'refund-passenger') {
       // Second click - execute refund
-      message.success(`✓ ${selectedPassenger.name} refunded (${selectedPassenger.price})`);
+      const refundAmount = (selectedPassenger.price * passengerRefundPercentage / 100).toFixed(2);
+      message.success(`✓ ${selectedPassenger.name} refunded $${refundAmount} (${passengerRefundPercentage}% of $${selectedPassenger.price.toFixed(2)})`);
       
       // Mark passenger as refunded by adding refunded flag and changing appearance
       selectedPassenger.refunded = true;
@@ -512,6 +535,42 @@ function BookingScheduler() {
                   <strong>Total Passengers: {selectedBooking.passengers.length}</strong> | 
                   <strong> Checked In: {selectedBooking.passengers.filter(p => p.checkedIn).length}</strong>
                 </div>
+                
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff' }}>
+                  <h4 style={{ margin: '0 0 8px 0' }}>Full Booking Refund Calculator</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <span>Percentage:</span>
+                    <InputNumber
+                      min={0}
+                      max={100}
+                      value={refundPercentage}
+                      onChange={(value) => setRefundPercentage(value || 0)}
+                      formatter={value => `${value}%`}
+                      parser={value => value.replace('%', '')}
+                      style={{ width: '100px' }}
+                    />
+                    <span>or Amount:</span>
+                    <InputNumber
+                      min={0}
+                      max={selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0)}
+                      value={parseFloat((selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0) * refundPercentage / 100).toFixed(2))}
+                      onChange={(value) => {
+                        const total = selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0);
+                        const newPercentage = (value / total) * 100;
+                        setRefundPercentage(parseFloat(newPercentage.toFixed(2)));
+                      }}
+                      formatter={value => `$${value}`}
+                      parser={value => value.replace('$', '')}
+                      style={{ width: '120px' }}
+                      step={0.01}
+                      precision={2}
+                    />
+                    <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
+                      (Total: ${selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0).toFixed(2)})
+                    </span>
+                  </div>
+                </div>
+                
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
                   {selectedBooking.passengers.map(passenger => (
                     <div
@@ -530,8 +589,8 @@ function BookingScheduler() {
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = passenger.checkedIn ? '#f6ffed' : '#fff1f0')}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div>
-                          <div style={{ fontWeight: 'bold' }}><UserOutlined /> {passenger.name}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 'bold' }}><UserOutlined /> {passenger.name} <Tag color="blue" style={{ marginLeft: '6px' }}>×{passenger.numPeople || 1}</Tag></div>
                           {passenger.title && <div style={{ fontSize: '12px', color: '#666' }}>{passenger.title}</div>}
                           <div style={{ fontSize: '12px', color: '#999' }}><PhoneOutlined /> {passenger.phone}</div>
                         </div>
@@ -626,6 +685,39 @@ function BookingScheduler() {
                 <Divider />
 
                 <div style={{ marginTop: '20px' }}>
+                  <h4>Refund Calculator</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                    <span>Percentage:</span>
+                    <InputNumber
+                      min={0}
+                      max={100}
+                      value={refundPercentage}
+                      onChange={(value) => setRefundPercentage(value || 0)}
+                      formatter={value => `${value}%`}
+                      parser={value => value.replace('%', '')}
+                      style={{ width: '100px' }}
+                    />
+                    <span>or Amount:</span>
+                    <InputNumber
+                      min={0}
+                      max={450.00}
+                      value={parseFloat((450.00 * refundPercentage / 100).toFixed(2))}
+                      onChange={(value) => {
+                        const newPercentage = (value / 450.00) * 100;
+                        setRefundPercentage(parseFloat(newPercentage.toFixed(2)));
+                      }}
+                      formatter={value => `$${value}`}
+                      parser={value => value.replace('$', '')}
+                      style={{ width: '120px' }}
+                      step={0.01}
+                      precision={2}
+                    />
+                  </div>
+                </div>
+
+                <Divider />
+
+                <div style={{ marginTop: '20px' }}>
                   <h4>Contact Information</h4>
                   <p><PhoneOutlined /> +1 (555) 123-4567</p>
                   <p><MailOutlined /> customer@example.com</p>
@@ -639,7 +731,7 @@ function BookingScheduler() {
 
         {/* Passenger Details Modal */}
         <Modal
-          title={`Passenger: ${selectedPassenger?.name}`}
+          title={`Passenger: ${selectedPassenger?.name} ×${selectedPassenger?.numPeople || 1}`}
           visible={passengerModalVisible}
           width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 700}
           wrapClassName="mobile-modal"
@@ -651,9 +743,37 @@ function BookingScheduler() {
             <Button key="close" onClick={() => {
               clearPendingAction();
               setPassengerModalVisible(false);
+              setHasUnsavedPassengerChanges(false);
             }}>
               Close
             </Button>,
+            hasUnsavedPassengerChanges && (
+              <Button 
+                key="cancel"
+                onClick={() => {
+                  selectedPassenger.numPeople = passengerNumPeopleCopy;
+                  setHasUnsavedPassengerChanges(false);
+                  forceUpdate();
+                  message.info('Changes discarded');
+                }}
+              >
+                Cancel
+              </Button>
+            ),
+            hasUnsavedPassengerChanges && (
+              <Button 
+                key="save"
+                type="primary"
+                onClick={() => {
+                  updateEventTitle(selectedBooking.id, selectedBooking.passengers);
+                  setHasUnsavedPassengerChanges(false);
+                  forceUpdate();
+                  message.success('Changes saved successfully!');
+                }}
+              >
+                Save Changes
+              </Button>
+            ),
             selectedPassenger && (
               <Button key="checkin" type="primary" onClick={handleCheckInPassenger}>
                 {selectedPassenger.checkedIn ? 'Undo Check-In' : 'Check In'}
@@ -731,6 +851,94 @@ function BookingScheduler() {
                 <h4>Price Paid</h4>
                 <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#1890ff' }}>${selectedPassenger.price.toFixed(2)}</p>
               </div>
+
+              <Divider />
+
+              <div style={{ marginTop: '16px' }}>
+                <h4>Refund Calculator</h4>
+                <p style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+                  Price per person: ${selectedPassenger.price.toFixed(2)} × {selectedPassenger.numPeople || 1} people = ${(selectedPassenger.price * (selectedPassenger.numPeople || 1)).toFixed(2)}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  <span>Percentage:</span>
+                  <InputNumber
+                    min={0}
+                    max={100}
+                    value={passengerRefundPercentage}
+                    onChange={(value) => setPassengerRefundPercentage(value || 0)}
+                    formatter={value => `${value}%`}
+                    parser={value => value.replace('%', '')}
+                    style={{ width: '100px' }}
+                  />
+                  <span>or Amount:</span>
+                  <InputNumber
+                    min={0}
+                    max={selectedPassenger.price * (selectedPassenger.numPeople || 1)}
+                    value={parseFloat((selectedPassenger.price * (selectedPassenger.numPeople || 1) * passengerRefundPercentage / 100).toFixed(2))}
+                    onChange={(value) => {
+                      const totalPrice = selectedPassenger.price * (selectedPassenger.numPeople || 1);
+                      const newPercentage = (value / totalPrice) * 100;
+                      setPassengerRefundPercentage(parseFloat(newPercentage.toFixed(2)));
+                    }}
+                    formatter={value => `$${value}`}
+                    parser={value => value.replace('$', '')}
+                    style={{ width: '120px' }}
+                    step={0.01}
+                    precision={2}
+                  />
+                </div>
+              </div>
+
+              <Divider />
+
+              <div style={{ marginTop: '16px' }}>
+                <h4>Group Size</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
+                  <span>Number of People:</span>
+                  <InputNumber
+                    min={1}
+                    max={20}
+                    value={selectedPassenger.numPeople || 1}
+                    onChange={(value) => {
+                      selectedPassenger.numPeople = value || 1;
+                      setHasUnsavedPassengerChanges((value || 1) !== passengerNumPeopleCopy);
+                      forceUpdate();
+                    }}
+                    style={{ width: '80px' }}
+                  />
+                  {(selectedPassenger.numPeople || 1) > 1 && (
+                    <Button 
+                      danger 
+                      onClick={() => {
+                        if ((selectedPassenger.numPeople || 1) > 1) {
+                          selectedPassenger.numPeople = (selectedPassenger.numPeople || 1) - 1;
+                          setHasUnsavedPassengerChanges(selectedPassenger.numPeople !== passengerNumPeopleCopy);
+                          forceUpdate();
+                        }
+                      }}
+                    >
+                      - Remove One Person
+                    </Button>
+                  )}
+                  <Button 
+                    type="primary"
+                    onClick={() => {
+                      selectedPassenger.numPeople = (selectedPassenger.numPeople || 1) + 1;
+                      setHasUnsavedPassengerChanges(selectedPassenger.numPeople !== passengerNumPeopleCopy);
+                      forceUpdate();
+                    }}
+                  >
+                    + Add One Person
+                  </Button>
+                </div>
+              </div>
+
+              {selectedPassenger.refunded && selectedPassenger.refundAmount && (
+                <div style={{ marginTop: '12px', padding: '8px', backgroundColor: '#fff1f0', borderRadius: '4px' }}>
+                  <Tag color="red">✓ Refunded</Tag>
+                  <span> ${selectedPassenger.refundAmount} ({selectedPassenger.refundPercentage}%)</span>
+                </div>
+              )}
 
               <Divider />
 
