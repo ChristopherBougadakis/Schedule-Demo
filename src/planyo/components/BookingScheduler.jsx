@@ -507,6 +507,10 @@ function BookingScheduler() {
   // Handle check-in passenger (toggle)
   const handleCheckInPassenger = () => {
     if (selectedPassenger) {
+      if (selectedPassenger.refunded) {
+        message.error('Cannot check in a refunded passenger');
+        return;
+      }
       selectedPassenger.checkedIn = !selectedPassenger.checkedIn;
       if (selectedPassenger.checkedIn) {
         message.success(`✓ ${selectedPassenger.name} has been checked in!`);
@@ -520,6 +524,10 @@ function BookingScheduler() {
   // Handle check-in (toggle)
   const handleCheckIn = () => {
     if (selectedBooking) {
+      if (selectedBooking.refunded) {
+        message.error('Cannot check in a refunded booking');
+        return;
+      }
       selectedBooking.checkedIn = !selectedBooking.checkedIn;
       if (selectedBooking.checkedIn) {
         message.success(`✓ ${selectedBooking.title} has been checked in!`);
@@ -552,11 +560,45 @@ function BookingScheduler() {
     }
   };
 
+  // Handle cancel refund for bookings
+  const handleCancelRefund = () => {
+    if (selectedBooking) {
+      selectedBooking.refunded = false;
+      delete selectedBooking.refundAmount;
+      delete selectedBooking.refundPercentage;
+      message.success(`✓ Refund cancelled for ${selectedBooking.title}`);
+      forceUpdate();
+    }
+  };
+
+  // Handle cancel refund for passengers
+  const handleCancelRefundPassenger = () => {
+    if (selectedPassenger) {
+      selectedPassenger.refunded = false;
+      delete selectedPassenger.refundAmount;
+      delete selectedPassenger.refundPercentage;
+      message.success(`✓ Refund cancelled for ${selectedPassenger.name}`);
+      forceUpdate();
+    }
+  };
+
   // Handle refund - double-action
   const handleRefund = () => {
     if (pendingAction === 'refund') {
       // Second click - execute refund
-      message.success(`✓ Refund processed for ${selectedBooking.title}`);
+      const totalPrice = selectedBooking.boatType === 'small' ? 450.00 : selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0);
+      const refundAmount = (totalPrice * refundPercentage / 100).toFixed(2);
+      
+      // Store refund data
+      const events = schedulerDataRef.current.events;
+      const eventIndex = events.findIndex(e => e.id === selectedBooking.id);
+      if (eventIndex !== -1) {
+        events[eventIndex].refunded = true;
+        events[eventIndex].refundAmount = refundAmount;
+        events[eventIndex].refundPercentage = refundPercentage;
+      }
+      
+      message.success(`✓ Refund processed for ${selectedBooking.title}: $${refundAmount} (${refundPercentage}% of $${totalPrice.toFixed(2)})`);
       updateEventStatus(selectedBooking.id, 'refunded');
       clearPendingAction();
     } else {
@@ -620,8 +662,10 @@ function BookingScheduler() {
       const refundAmount = (selectedPassenger.price * passengerRefundPercentage / 100).toFixed(2);
       message.success(`✓ ${selectedPassenger.name} refunded $${refundAmount} (${passengerRefundPercentage}% of $${selectedPassenger.price.toFixed(2)})`);
       
-      // Mark passenger as refunded by adding refunded flag and changing appearance
+      // Mark passenger as refunded and store refund data
       selectedPassenger.refunded = true;
+      selectedPassenger.refundAmount = refundAmount;
+      selectedPassenger.refundPercentage = passengerRefundPercentage;
       forceUpdate();
       
       clearPendingAction();
@@ -695,14 +739,6 @@ function BookingScheduler() {
               }}>
                 Close
               </Button>,
-              <Button 
-                key="refund" 
-                type={pendingAction === 'refund' ? 'primary' : 'dashed'} 
-                danger 
-                onClick={handleRefund}
-              >
-                {pendingAction === 'refund' ? '⚠ CONFIRM Refund' : 'Process Refund'}
-              </Button>,
             ]}
           >
             {selectedBooking?.passengers && (
@@ -710,41 +746,6 @@ function BookingScheduler() {
                 <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
                   <strong>Total Passengers: {selectedBooking.passengers.length}</strong> | 
                   <strong> Checked In: {selectedBooking.passengers.filter(p => p.checkedIn).length}</strong>
-                </div>
-                
-                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#e6f7ff', borderRadius: '4px', border: '1px solid #91d5ff' }}>
-                  <h4 style={{ margin: '0 0 8px 0' }}>Full Booking Refund Calculator</h4>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    <span>Percentage:</span>
-                    <InputNumber
-                      min={0}
-                      max={100}
-                      value={refundPercentage}
-                      onChange={(value) => setRefundPercentage(value || 0)}
-                      formatter={value => `${value}%`}
-                      parser={value => value.replace('%', '')}
-                      style={{ width: '100px' }}
-                    />
-                    <span>or Amount:</span>
-                    <InputNumber
-                      min={0}
-                      max={selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0)}
-                      value={parseFloat((selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0) * refundPercentage / 100).toFixed(2))}
-                      onChange={(value) => {
-                        const total = selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0);
-                        const newPercentage = (value / total) * 100;
-                        setRefundPercentage(parseFloat(newPercentage.toFixed(2)));
-                      }}
-                      formatter={value => `$${value}`}
-                      parser={value => value.replace('$', '')}
-                      style={{ width: '120px' }}
-                      step={0.01}
-                      precision={2}
-                    />
-                    <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
-                      (Total: ${selectedBooking.passengers.reduce((sum, p) => sum + (p.price * (p.numPeople || 1)), 0).toFixed(2)})
-                    </span>
-                  </div>
                 </div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }}>
@@ -797,40 +798,56 @@ function BookingScheduler() {
             }}
             width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 800}
             wrapClassName="mobile-modal"
-            footer={[
-              <Button key="close" onClick={() => {
-                clearPendingAction();
-                setModalVisible(false);
-              }}>
-                Close
-              </Button>,
-              <Button 
-                key="move"
-                type="default"
-                onClick={() => setMoveSmallBoatModalVisible(true)}
-              >
-                Move Reservation
-              </Button>,
-              <Button 
-                key="refund" 
-                type={pendingAction === 'refund' ? 'primary' : 'dashed'} 
-                danger 
-                onClick={handleRefund}
-              >
-                {pendingAction === 'refund' ? '⚠ CONFIRM Refund' : 'Process Refund'}
-              </Button>,
-              <Button 
-                key="cancel" 
-                type={pendingAction === 'cancel' ? 'primary' : 'default'} 
-                danger 
-                onClick={handleCancelClick}
-              >
-                {pendingAction === 'cancel' ? '⚠ CONFIRM Cancel' : 'Cancel Booking'}
-              </Button>,
-              <Button key="checkin" type="primary" onClick={handleCheckIn}>
-                {selectedBooking?.checkedIn ? 'Undo Check-In' : 'Check In'}
-              </Button>,
-            ]}
+            footer={
+              selectedBooking?.refunded ? [
+                <Button key="close" onClick={() => {
+                  clearPendingAction();
+                  setModalVisible(false);
+                }}>
+                  Close
+                </Button>,
+                <Button 
+                  key="cancel-refund"
+                  type="primary"
+                  onClick={handleCancelRefund}
+                >
+                  Cancel Refund
+                </Button>,
+              ] : [
+                <Button key="close" onClick={() => {
+                  clearPendingAction();
+                  setModalVisible(false);
+                }}>
+                  Close
+                </Button>,
+                <Button 
+                  key="move"
+                  type="default"
+                  onClick={() => setMoveSmallBoatModalVisible(true)}
+                >
+                  Move Reservation
+                </Button>,
+                <Button 
+                  key="refund" 
+                  type={pendingAction === 'refund' ? 'primary' : 'dashed'} 
+                  danger 
+                  onClick={handleRefund}
+                >
+                  {pendingAction === 'refund' ? '⚠ CONFIRM Refund' : 'Process Refund'}
+                </Button>,
+                <Button 
+                  key="cancel" 
+                  type={pendingAction === 'cancel' ? 'primary' : 'default'} 
+                  danger 
+                  onClick={handleCancelClick}
+                >
+                  {pendingAction === 'cancel' ? '⚠ CONFIRM Cancel' : 'Cancel Booking'}
+                </Button>,
+                <Button key="checkin" type="primary" onClick={handleCheckIn}>
+                  {selectedBooking?.checkedIn ? 'Undo Check-In' : 'Check In'}
+                </Button>,
+              ]
+            }
           >
             {selectedBooking && (
               <>
@@ -851,15 +868,21 @@ function BookingScheduler() {
                     {Math.round((selectedBooking.end - selectedBooking.start) / 3600000)} hours
                   </Descriptions.Item>
                   <Descriptions.Item label="Status">
-                    <Tag color="blue">Confirmed</Tag>
-                  </Descriptions.Item>
-                  <Descriptions.Item label="Check-In Status">
-                    {selectedBooking.checkedIn ? (
-                      <Tag color="green">✓ Checked In</Tag>
+                    {selectedBooking.refunded ? (
+                      <Tag color="red">Refunded: ${selectedBooking.refundAmount} ({selectedBooking.refundPercentage}%)</Tag>
                     ) : (
-                      <Tag color="orange">Not Checked In</Tag>
+                      <Tag color="blue">Confirmed</Tag>
                     )}
                   </Descriptions.Item>
+                  {!selectedBooking.refunded && (
+                    <Descriptions.Item label="Check-In Status">
+                      {selectedBooking.checkedIn ? (
+                        <Tag color="green">✓ Checked In</Tag>
+                      ) : (
+                        <Tag color="orange">Not Checked In</Tag>
+                      )}
+                    </Descriptions.Item>
+                  )}
                   <Descriptions.Item label="Price">
                     $450.00
                   </Descriptions.Item>
@@ -1004,13 +1027,19 @@ function BookingScheduler() {
                 <Descriptions.Item label="Phone">
                   <PhoneOutlined /> {selectedPassenger.phone}
                 </Descriptions.Item>
-                <Descriptions.Item label="Check-In Status">
-                  {selectedPassenger.checkedIn ? (
-                    <Tag color="green">✓ Checked In</Tag>
-                  ) : (
-                    <Tag color="orange">Not Checked In</Tag>
-                  )}
-                </Descriptions.Item>
+                {selectedPassenger.refunded ? (
+                  <Descriptions.Item label="Status">
+                    <Tag color="red">Refunded: ${selectedPassenger.refundAmount} ({selectedPassenger.refundPercentage}%)</Tag>
+                  </Descriptions.Item>
+                ) : (
+                  <Descriptions.Item label="Check-In Status">
+                    {selectedPassenger.checkedIn ? (
+                      <Tag color="green">✓ Checked In</Tag>
+                    ) : (
+                      <Tag color="orange">Not Checked In</Tag>
+                    )}
+                  </Descriptions.Item>
+                )}
                 {selectedPassenger.refunded && (
                   <Descriptions.Item label="Refund Status">
                     <Tag color="red">✓ Refunded</Tag>
