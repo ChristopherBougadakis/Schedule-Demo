@@ -1,5 +1,5 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Calendar, Col, Popover, Radio, Row, Space, Spin } from 'antd';
+import { Button, Calendar, Col, Popover, Radio, Row, Space, Spin } from 'antd';
 import dayjs from 'dayjs';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
@@ -21,6 +21,7 @@ const SchedulerHeader = React.forwardRef(({
   const [viewSpinning, setViewSpinning] = useState(false);
   const [dateSpinning, setDateSpinning] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [tempSelectedDate, setTempSelectedDate] = useState(null);
 
   const { viewType, showAgenda, isEventPerspective, config } = schedulerData;
   const dateLabel = schedulerData.getDateLabel();
@@ -49,17 +50,30 @@ const SchedulerHeader = React.forwardRef(({
     }
   };
 
+  const handleOkClick = () => {
+    if (tempSelectedDate) {
+      handleEvents(onSelectDate, false, tempSelectedDate.format(DATE_FORMAT));
+    }
+    setVisible(false);
+    setTempSelectedDate(null);
+  };
+
   const popover = (
     <div className="popover-calendar">
       <Calendar
         locale={calendarLocale}
         defaultValue={dayjs(selectDate)}
+        value={tempSelectedDate || dayjs(selectDate)}
         fullscreen={false}
         onSelect={date => {
-          setVisible(false);
-          handleEvents(onSelectDate, false, date.format(DATE_FORMAT));
+          setTempSelectedDate(date);
         }}
       />
+      <div style={{ padding: '10px', textAlign: 'right', borderTop: '1px solid #f0f0f0' }}>
+        <Button type="primary" size="small" onClick={handleOkClick}>
+          OK
+        </Button>
+      </div>
     </div>
   );
 
@@ -93,7 +107,12 @@ const SchedulerHeader = React.forwardRef(({
                   placement="bottomLeft"
                   trigger="click"
                   open={visible}
-                  onOpenChange={setVisible}
+                  onOpenChange={(open) => {
+                    setVisible(open);
+                    if (!open) {
+                      setTempSelectedDate(null);
+                    }
+                  }}
                   overlayClassName="scheduler-header-popover"
                 >
                   <span className="header2-text-label" style={{ cursor: 'pointer' }}>

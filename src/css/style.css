@@ -478,3 +478,22 @@
   border: none;
   background-color: transparent;
 }
+
+/* Hide DatePicker Month/Year Mode Switch */
+.ant-picker-calendar-mode-switch {
+  display: none !important;
+}
+
+/* DatePicker Footer Styling */
+.ant-picker-footer {
+  display: block !important;
+  padding: 8px 12px !important;
+  border-top: 1px solid #f0f0f0 !important;
+  text-align: right !important;
+}
+
+.popover-calendar .ant-picker-footer {
+  display: block !important;
+  padding: 8px 12px !important;
+  text-align: right !important;
+}

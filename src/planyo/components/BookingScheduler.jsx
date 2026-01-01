@@ -257,6 +257,10 @@ function BookingScheduler() {
   const [moveSmallBoatStartTime, setMoveSmallBoatStartTime] = useState(null);
   const [moveSmallBoatEndTime, setMoveSmallBoatEndTime] = useState(null);
   
+  // DatePicker open states to keep pickers open during interaction
+  const [movePassengerDateOpen, setMovePassengerDateOpen] = useState(false);
+  const [moveSmallBoatDateOpen, setMoveSmallBoatDateOpen] = useState(false);
+  
   const forceUpdate = () => setUpdate(prev => prev + 1);
   
   // Helper function to update event title based on total people
@@ -561,27 +565,6 @@ function BookingScheduler() {
   };
 
   // Handle cancel refund for bookings
-  const handleCancelRefund = () => {
-    if (selectedBooking) {
-      selectedBooking.refunded = false;
-      delete selectedBooking.refundAmount;
-      delete selectedBooking.refundPercentage;
-      message.success(`✓ Refund cancelled for ${selectedBooking.title}`);
-      forceUpdate();
-    }
-  };
-
-  // Handle cancel refund for passengers
-  const handleCancelRefundPassenger = () => {
-    if (selectedPassenger) {
-      selectedPassenger.refunded = false;
-      delete selectedPassenger.refundAmount;
-      delete selectedPassenger.refundPercentage;
-      message.success(`✓ Refund cancelled for ${selectedPassenger.name}`);
-      forceUpdate();
-    }
-  };
-
   // Handle refund - double-action
   const handleRefund = () => {
     if (pendingAction === 'refund') {
@@ -806,13 +789,6 @@ function BookingScheduler() {
                 }}>
                   Close
                 </Button>,
-                <Button 
-                  key="cancel-refund"
-                  type="primary"
-                  onClick={handleCancelRefund}
-                >
-                  Cancel Refund
-                </Button>,
               ] : [
                 <Button key="close" onClick={() => {
                   clearPendingAction();
@@ -945,14 +921,23 @@ function BookingScheduler() {
             clearPendingAction();
             setPassengerModalVisible(false);
           }}
-          footer={[
-            <Button key="close" onClick={() => {
-              clearPendingAction();
-              setPassengerModalVisible(false);
-              setHasUnsavedPassengerChanges(false);
-            }}>
-              Close
-            </Button>,
+          footer={
+            selectedPassenger?.refunded ? [
+              <Button key="close" onClick={() => {
+                clearPendingAction();
+                setPassengerModalVisible(false);
+                setHasUnsavedPassengerChanges(false);
+              }}>
+                Close
+              </Button>,
+            ] : [
+              <Button key="close" onClick={() => {
+                clearPendingAction();
+                setPassengerModalVisible(false);
+                setHasUnsavedPassengerChanges(false);
+              }}>
+                Close
+              </Button>,
             hasUnsavedPassengerChanges && (
               <Button 
                 key="cancel"
@@ -1013,7 +998,8 @@ function BookingScheduler() {
             >
               {pendingAction === 'remove' ? '⚠ CONFIRM Remove' : 'Remove Passenger'}
             </Button>,
-          ]}
+            ]
+          }
         >
           {selectedPassenger && (
             <>
@@ -1267,6 +1253,32 @@ function BookingScheduler() {
                     onChange={(date) => setMoveNewDate(date)}
                     style={{ width: '100%' }}
                     disabledDate={(current) => current && current < dayjs().startOf('day')}
+                    picker="date"
+                    open={movePassengerDateOpen}
+                    onOpenChange={setMovePassengerDateOpen}
+                    renderExtraFooter={() => (
+                      <div style={{ 
+                        padding: '12px',
+                        borderTop: '1px solid #f0f0f0',
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: '8px'
+                      }}>
+                        <Button 
+                          onClick={() => setMovePassengerDateOpen(false)}
+                          style={{ width: '80px' }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="primary" 
+                          onClick={() => setMovePassengerDateOpen(false)}
+                          style={{ width: '80px' }}
+                        >
+                          OK
+                        </Button>
+                      </div>
+                    )}
                   />
                 </Form.Item>
 
@@ -1347,6 +1359,32 @@ function BookingScheduler() {
                 onChange={(date) => setMoveSmallBoatDate(date)}
                 style={{ width: '100%' }}
                 disabledDate={(current) => current && current < dayjs().startOf('day')}
+                picker="date"
+                open={moveSmallBoatDateOpen}
+                onOpenChange={setMoveSmallBoatDateOpen}
+                renderExtraFooter={() => (
+                  <div style={{ 
+                    padding: '12px',
+                    borderTop: '1px solid #f0f0f0',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: '8px'
+                  }}>
+                    <Button 
+                      onClick={() => setMoveSmallBoatDateOpen(false)}
+                      style={{ width: '80px' }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="primary" 
+                      onClick={() => setMoveSmallBoatDateOpen(false)}
+                      style={{ width: '80px' }}
+                    >
+                      OK
+                    </Button>
+                  </div>
+                )}
               />
             </Form.Item>
 
