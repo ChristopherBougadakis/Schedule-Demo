@@ -55,11 +55,14 @@ function Scheduler(props) {
 
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
   // Refs instead of class properties
   const currentAreaRef = useRef(-1);
   const scrollLeftRef = useRef(0);
   const scrollTopRef = useRef(0);
+  const scrollTimeoutRef = useRef(null);
   const schedulerHeadRef = useRef(null);
   const schedulerHeaderRef = useRef(null);
   const schedulerResourceRef = useRef(null);
@@ -72,6 +75,7 @@ function Scheduler(props) {
   const onWindowResize = useCallback(() => {
     schedulerData._setDocumentWidth(document.documentElement.clientWidth);
     schedulerData._setDocumentHeight(document.documentElement.clientHeight);
+    setIsDesktop(window.innerWidth >= 1024);
     setState(prevState => ({
       ...prevState,
       documentWidth: document.documentElement.clientWidth,
@@ -271,6 +275,21 @@ function Scheduler(props) {
   }, []);
 
   const onSchedulerContentScroll = useCallback(() => {
+    // Detect scroll start
+    if (!isScrolling) {
+      setIsScrolling(true);
+    }
+
+    // Clear previous timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Set timeout to detect scroll end
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 150);
+
     if (schedulerResourceRef.current) {
       if (currentAreaRef.current === 0 || currentAreaRef.current === -1) {
         if (schedulerHeadRef.current.scrollLeft !== schedulerContentRef.current.scrollLeft) {
@@ -305,28 +324,31 @@ function Scheduler(props) {
 
     // Update arrow visibility
     updateArrowVisibility();
-  }, [props, schedulerData]);
+  }, [props, schedulerData, isScrolling, updateArrowVisibility]);
 
   // Update arrow visibility based on scroll position
   const updateArrowVisibility = useCallback(() => {
-    if (schedulerContentRef.current) {
+    if (schedulerContentRef.current && isDesktop) {
       const { scrollLeft, scrollWidth, clientWidth } = schedulerContentRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(Math.round(scrollLeft) < scrollWidth - clientWidth - 1);
+      setShowLeftArrow(scrollLeft > 0 && !isScrolling);
+      setShowRightArrow(Math.round(scrollLeft) < scrollWidth - clientWidth - 1 && !isScrolling);
+    } else {
+      setShowLeftArrow(false);
+      setShowRightArrow(false);
     }
-  }, []);
+  }, [isScrolling, isDesktop]);
 
   // Scroll navigation handlers
   const scrollLeft = useCallback(() => {
     if (schedulerContentRef.current) {
-      const scrollAmount = schedulerData.getContentCellWidth() * 3;
+      const scrollAmount = schedulerData.getContentCellWidth() * 12;
       schedulerContentRef.current.scrollLeft -= scrollAmount;
     }
   }, [schedulerData]);
 
   const scrollRight = useCallback(() => {
     if (schedulerContentRef.current) {
-      const scrollAmount = schedulerData.getContentCellWidth() * 3;
+      const scrollAmount = schedulerData.getContentCellWidth() * 12;
       schedulerContentRef.current.scrollLeft += scrollAmount;
     }
   }, [schedulerData]);
@@ -334,7 +356,16 @@ function Scheduler(props) {
   // Update arrows on mount and content changes
   useEffect(() => {
     updateArrowVisibility();
-  }, [state.documentWidth, updateArrowVisibility]);
+  }, [state.documentWidth, isScrolling, isDesktop, updateArrowVisibility]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Event handlers
   const handleViewChange = useCallback(e => {
@@ -462,27 +493,27 @@ function Scheduler(props) {
                   top: '50%',
                   transform: 'translateY(-50%)',
                   zIndex: 1000,
-                  background: 'rgba(255, 255, 255, 0.9)',
+                  background: 'rgba(255, 255, 255, 0.6)',
                   borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
                   transition: 'all 0.3s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
                 }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
+                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.1)';
+                }}
               >
-                <LeftOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+                <LeftOutlined style={{ fontSize: '16px', color: '#8c8c8c' }} />
               </div>
             )}
             {showRightArrow && (
@@ -495,27 +526,27 @@ function Scheduler(props) {
                   top: '50%',
                   transform: 'translateY(-50%)',
                   zIndex: 1000,
-                  background: 'rgba(255, 255, 255, 0.9)',
+                  background: 'rgba(255, 255, 255, 0.6)',
                   borderRadius: '50%',
-                  width: '40px',
-                  height: '40px',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
                   transition: 'all 0.3s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
                   e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
                 }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
+                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.1)';
+                }}
               >
-                <RightOutlined style={{ fontSize: '20px', color: '#1890ff' }} />
+                <RightOutlined style={{ fontSize: '16px', color: '#8c8c8c' }} />
               </div>
             )}
             <div style={{ overflow: 'hidden', borderBottom: '1px solid #e9e9e9', height: config.tableHeaderHeight }}>

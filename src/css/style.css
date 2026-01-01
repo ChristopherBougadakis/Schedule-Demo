@@ -246,6 +246,22 @@
   }
 }
 
+/* Mobile touch scrolling optimization */
+@media (max-width: 1024px) {
+  .react-big-schedule .scheduler-view > div > div {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: none;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+  }
+  
+  .react-big-schedule .scheduler-content-table,
+  .react-big-schedule .scheduler-bg-table {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 /* Scheduler Components */
 .react-big-schedule {
   margin: 20px auto;
@@ -282,7 +298,17 @@
 
 /* Smooth scrolling for scheduler content */
 .react-big-schedule .scheduler-view > div > div {
-  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: none;
+  overscroll-behavior: contain;
+}
+
+/* Hardware acceleration for smooth scrolling */
+.react-big-schedule .scheduler-content,
+.react-big-schedule .scheduler-bg {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* Positioning */
