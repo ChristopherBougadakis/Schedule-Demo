@@ -49,6 +49,7 @@ const createDummyEvents = () => {
       resourceId: 'small-1',
       bgColor: '#FF6B6B',
       boatType: 'small',
+      checkedIn: false,
     },
     {
       id: 2,
@@ -77,6 +78,7 @@ const createDummyEvents = () => {
       resourceId: 'small-2',
       bgColor: '#FFE66D',
       boatType: 'small',
+      checkedIn: false,
     },
     {
       id: 4,
@@ -107,6 +109,7 @@ const createDummyEvents = () => {
       resourceId: 'small-1',
       bgColor: '#F38181',
       boatType: 'small',
+      checkedIn: false,
     },
     {
       id: 6,
@@ -133,6 +136,7 @@ const createDummyEvents = () => {
       resourceId: 'small-2',
       bgColor: '#FCBAD3',
       boatType: 'small',
+      checkedIn: false,
     },
     {
       id: 8,
@@ -165,6 +169,7 @@ const createDummyEvents = () => {
       resourceId: 'small-1',
       bgColor: '#FF9999',
       boatType: 'small',
+      checkedIn: false,
     },
     // Testing multiple bookings same boat same day
     {
@@ -175,6 +180,7 @@ const createDummyEvents = () => {
       resourceId: 'small-1',
       bgColor: '#9B59B6',
       boatType: 'small',
+      checkedIn: false,
     },
     {
       id: 11,
@@ -184,6 +190,7 @@ const createDummyEvents = () => {
       resourceId: 'small-1',
       bgColor: '#3498DB',
       boatType: 'small',
+      checkedIn: false,
     },
     {
       id: 12,
@@ -193,6 +200,7 @@ const createDummyEvents = () => {
       resourceId: 'small-1',
       bgColor: '#E74C3C',
       boatType: 'small',
+      checkedIn: false,
     },
     // Multiple bookings on big boat same day
     {
@@ -298,18 +306,30 @@ function BookingScheduler() {
     setModalVisible(false); // Close the big boat modal when opening passenger modal
   };
 
-  // Handle check-in passenger
+  // Handle check-in passenger (toggle)
   const handleCheckInPassenger = () => {
     if (selectedPassenger) {
-      selectedPassenger.checkedIn = true;
-      message.success(`✓ ${selectedPassenger.name} has been checked in!`);
+      selectedPassenger.checkedIn = !selectedPassenger.checkedIn;
+      if (selectedPassenger.checkedIn) {
+        message.success(`✓ ${selectedPassenger.name} has been checked in!`);
+      } else {
+        message.info(`${selectedPassenger.name} check-in has been undone`);
+      }
       forceUpdate();
     }
   };
 
-  // Handle check-in
+  // Handle check-in (toggle)
   const handleCheckIn = () => {
-    message.success(`✓ ${selectedBooking.title} has been checked in!`);
+    if (selectedBooking) {
+      selectedBooking.checkedIn = !selectedBooking.checkedIn;
+      if (selectedBooking.checkedIn) {
+        message.success(`✓ ${selectedBooking.title} has been checked in!`);
+      } else {
+        message.info(`${selectedBooking.title} check-in has been undone`);
+      }
+      forceUpdate();
+    }
   };
 
   // Handle cancellation - double-action
@@ -467,7 +487,7 @@ function BookingScheduler() {
               clearPendingAction();
               setModalVisible(false);
             }}
-            width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '90%' : 700}
+            width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 900}
             wrapClassName="mobile-modal"
             footer={[
               <Button key="close" onClick={() => {
@@ -540,7 +560,7 @@ function BookingScheduler() {
               clearPendingAction();
               setModalVisible(false);
             }}
-            width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '90%' : 600}
+            width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 800}
             wrapClassName="mobile-modal"
             footer={[
               <Button key="close" onClick={() => {
@@ -566,7 +586,7 @@ function BookingScheduler() {
                 {pendingAction === 'cancel' ? '⚠ CONFIRM Cancel' : 'Cancel Booking'}
               </Button>,
               <Button key="checkin" type="primary" onClick={handleCheckIn}>
-                Check In
+                {selectedBooking?.checkedIn ? 'Undo Check-In' : 'Check In'}
               </Button>,
             ]}
           >
@@ -591,6 +611,13 @@ function BookingScheduler() {
                   <Descriptions.Item label="Status">
                     <Tag color="blue">Confirmed</Tag>
                   </Descriptions.Item>
+                  <Descriptions.Item label="Check-In Status">
+                    {selectedBooking.checkedIn ? (
+                      <Tag color="green">✓ Checked In</Tag>
+                    ) : (
+                      <Tag color="orange">Not Checked In</Tag>
+                    )}
+                  </Descriptions.Item>
                   <Descriptions.Item label="Price">
                     $450.00
                   </Descriptions.Item>
@@ -614,7 +641,7 @@ function BookingScheduler() {
         <Modal
           title={`Passenger: ${selectedPassenger?.name}`}
           visible={passengerModalVisible}
-          width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '90%' : 500}
+          width={typeof window !== 'undefined' && window.innerWidth <= 768 ? '95%' : 700}
           wrapClassName="mobile-modal"
           onCancel={() => {
             clearPendingAction();
@@ -627,9 +654,9 @@ function BookingScheduler() {
             }}>
               Close
             </Button>,
-            selectedPassenger && !selectedPassenger.checkedIn && (
+            selectedPassenger && (
               <Button key="checkin" type="primary" onClick={handleCheckInPassenger}>
-                Check In
+                {selectedPassenger.checkedIn ? 'Undo Check-In' : 'Check In'}
               </Button>
             ),
             <Button 
