@@ -388,6 +388,13 @@ function BookingScheduler() {
     }
 
     schedulerDataRef.current.setEvents(events);
+    
+    // Navigate to the new date if created a new reservation
+    if (moveMode === 'new' && moveNewDate) {
+      schedulerDataRef.current.setDate(moveNewDate.format('YYYY-MM-DD'));
+      schedulerDataRef.current.setEvents(events);
+    }
+    
     forceUpdate();
     
     setMoveModalVisible(false);
@@ -434,6 +441,11 @@ function BookingScheduler() {
     message.success(`✓ Reservation moved to ${moveSmallBoatDate.format('MMM D, YYYY')} from ${moveSmallBoatStartTime.format('h:mm A')} to ${moveSmallBoatEndTime.format('h:mm A')}`);
 
     schedulerDataRef.current.setEvents(events);
+    
+    // Navigate to the new date
+    schedulerDataRef.current.setDate(moveSmallBoatDate.format('YYYY-MM-DD'));
+    schedulerDataRef.current.setEvents(events);
+    
     forceUpdate();
     
     setMoveSmallBoatModalVisible(false);
@@ -669,26 +681,30 @@ function BookingScheduler() {
   };
 
   const prevClick = (schedulerData) => {
+    const existingEvents = schedulerDataRef.current?.events || [];
     schedulerData.prev();
-    schedulerData.setEvents(createDummyEvents());
+    schedulerData.setEvents(existingEvents);
     forceUpdate();
   };
 
   const nextClick = (schedulerData) => {
+    const existingEvents = schedulerDataRef.current?.events || [];
     schedulerData.next();
-    schedulerData.setEvents(createDummyEvents());
+    schedulerData.setEvents(existingEvents);
     forceUpdate();
   };
 
   const onViewChange = (schedulerData, view) => {
+    const existingEvents = schedulerDataRef.current?.events || [];
     schedulerData.setViewType(view.viewType, view.showAgenda, view.isEventPerspective);
-    schedulerData.setEvents(createDummyEvents());
+    schedulerData.setEvents(existingEvents);
     forceUpdate();
   };
 
   const onSelectDate = (schedulerData, date) => {
+    const existingEvents = schedulerDataRef.current?.events || [];
     schedulerData.setDate(date);
-    schedulerData.setEvents(createDummyEvents());
+    schedulerData.setEvents(existingEvents);
     forceUpdate();
   };
 
